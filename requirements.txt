@@ -1,0 +1,3 @@
+pysimplesoap
+xmltodict
+tabulate
