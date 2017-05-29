@@ -113,7 +113,8 @@ class Client():
         '''
         if student_code.isdigit() and year.isdigit() and term.isdigit():
             response = self.__service.wsConsultaCalificaciones(anio=str(year),
-                                                               termino=str(term),
+                                                               termino=str(
+                                                                   term),
                                                                estudiante=student_code,
                                                                headers=self.header)
             json_response = self.__bytes_to_dict(response.as_xml())
@@ -125,4 +126,233 @@ class Client():
             return self.__remove_unused_items(json_response)
         else:
             raise AttributeError('student code must be a string of numbers')
-            
+
+    def ws_consulta_codigo_estudiante(self, username):
+        '''
+        Consume wsConsultaCodigoEstudiante
+        :param user: username of the student
+        :return: json with the student code
+        '''
+        if username.isalpha():
+            response = self.__service.wsConsultaCodigoEstudiante(
+                user=username, headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get(
+                'Body').get('wsConsultaCodigoEstudianteResponse').get(
+                    'wsConsultaCodigoEstudianteResult').get(
+                        'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                            'NewDataSet').get('MATRICULA')
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError(
+                'username is a string without numbers or special chars')
+
+    def ws_consulta_periodo_actual(self):
+        '''
+        Consume wsConsultaPeriodoActual
+        :return: json with actual academic term
+        '''
+        response = self.__service.wsConsultaPeriodoActual(headers=self.header)
+        json_response = self.__bytes_to_dict(response.as_xml())
+        json_response = json_response.get('Envelope').get('Body').get(
+            'wsConsultaPeriodoActualResponse').get('wsConsultaPeriodoActualResult').get(
+                'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                    'NewDataSet').get('PERIODO')
+        return self.__remove_unused_items(json_response)
+
+    def ws_estudiantes_registrados(self, course_code, parallel):
+        '''
+        Consume wsEstudiantesRegistrados
+        :param course_code: code course e.g. 'ICM0001'
+        :param parallel: the number of the course to find e.g. 1
+        :return: array with the students {code, name}
+        the name is _x0031_ <- wtf?
+        '''
+        if course_code.isalnum() and parallel.isdigit():
+            response = self.__service.wsEstudiantesRegistrados(codigoMateria=course_code, 
+                paralelo=int(parallel), headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get('Body').get(
+                'wsEstudiantesRegistradosResponse').get('wsEstudiantesRegistradosResult').get(
+                    'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                        'NewDataSet').get('ESTUDIANTESREGISTRADOS')
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError('invalid inputs')
+
+    def ws_horario_clases(self, course_code, parallel):
+        '''
+        Consume wsHorarioClases
+        :param course_code: code course e.g. 'ICM0001'
+        :param parallel: the number of the course to find e.g. 1
+        :return: list with hours or dict with 1 hour
+        '''
+        if course_code.isalnum() and parallel.isdigit():
+            response = self.__service.wsHorarioClases(codigoMateria=course_code,
+                paralelo=int(parallel), headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get('Body').get(
+                'wsHorarioClasesResponse').get('wsHorarioClasesResult').get(
+                    'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                        'NewDataSet').get('HORARIOCLASES')
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError('invalid inputs')
+
+    def ws_horario_examenes(self, course_code, parallel):
+        '''
+        Consume wsHorarioExamenes
+        :param course_code: code course e.g. 'ICM0001'
+        :param parallel: the number of the course to find e.g. 1
+        :return: list with tests date
+        '''
+        if course_code.isalnum() and parallel.isdigit():
+            response = self.__service.wsHorarioExamenes(codigoMateria=course_code,
+                paralelo=int(parallel), headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get('Body').get(
+                'wsHorarioExamenesResponse').get('wsHorarioExamenesResult').get(
+                    'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                        'NewDataSet').get('_x0020__x0020_')
+            # '_x0020__x0020_' <- wtf? 
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError('invalid inputs')
+
+    def ws_materias_registradas(self, student_code):
+        '''
+        Consume wsMateriasRegistradas
+        :param student_code: student id
+        '''
+        if student_code.isdigit():
+            response  = self.__service.wsMateriasRegistradas(codigoestudiante=student_code,
+                headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get('Body').get(
+                'wsMateriasRegistradasResponse').get('wsMateriasRegistradasResult').get(
+                    'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                        'NewDataSet').get('MATERIASREGISTRADAS')
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError('student code must be a string of numbers')
+
+    def ws_info_estudiante_general(self, student_code):
+        '''
+        Consume wsInfoEstudianteGeneral
+        :param student_code: student id
+        '''
+        if student_code.isdigit():
+            response = self.__service.wsInfoEstudianteGeneral(codestudiante=student_code,
+                headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get('Body').get(
+                'wsInfoEstudianteGeneralResponse').get('wsInfoEstudianteGeneralResult').get(
+                    'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                        'NewDataSet').get('ESTUDIANTE')
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError('student code must be a string of numbers')
+    
+    def ws_info_estudiante(self, student_code):
+        '''
+        consume wsInfoEstudiante
+        :param student_code: student id
+        '''
+        if student_code.isdigit():
+            response = self.__service.wsInfoEstudiante(codigoEstudiante=student_code,
+                headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get('Body').get(
+                'wsInfoEstudianteResponse').get('wsInfoEstudianteResult').get(
+                    'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                        'NewDataSet').get('INFOESTUDIANTE')
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError('student code must be a string of numbers')
+    
+    def ws_info_estudiante_carrera(self, student_code):
+        '''
+        Consume wsInfoEstudianteCarrera
+        :param student_code: student id
+        '''
+        if student_code.isdigit():
+            response = self.__service.wsInfoEstudianteCarrera(codigoEstudiante=student_code,
+                headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get('Body').get(
+                'wsInfoEstudianteCarreraResponse').get('wsInfoEstudianteCarreraResult').get(
+                    'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                        'NewDataSet').get('ESTUDIANTECARRERA')
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError('student code must be a string of numbers')
+    
+    def ws_info_personal_estudiante(self, student_code, dni):
+        '''
+        Consume wsInfoPersonalEstudiante
+        :param student_code: student id
+        :param dni: dni code
+        '''
+        if student_code.isdigit() and dni.isdigit():
+            response = self.__service.wsInfoPersonalEstudiante(matricula=student_code,
+                identificacion=dni, headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get('Body').get(
+                'wsInfoPersonalEstudianteResponse').get('wsInfoPersonalEstudianteResult').get(
+                    'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                        'NewDataSet').get('INFOPERSONALESTUDIANTE')
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError('student code or dni invalid')
+    
+    def ws_info_usuario(self, user):
+        '''
+        Consume wsInfoUsuario
+        :param user: username in the academic system
+        '''
+        if user.isalpha():
+            response = self.__service.wsInfoUsuario(usuario=user,
+                headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get('Body').get(
+                'wsInfoUsuarioResponse').get('wsInfoUsuarioResult').get(
+                    'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                        'NewDataSet').get('INFORMACIONUSUARIO')
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError('username incorrect')
+    
+    def ws_info_paralelo(self, course_code, parallel):
+        '''
+        Consume wsInfoparalelo
+        :param course_code: code course e.g. 'ICM0001'
+        :param parallel: the number of the course to find e.g. 1
+        '''
+        if course_code.isalnum() and parallel.isdigit():
+            response = self.__service.wsInfoparalelo(codigoMateria=course_code,
+                paralelo=int(parallel), headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get('Body').get(
+                'wsInfoparaleloResponse').get('wsInfoparaleloResult').get(
+                    'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                        'NewDataSet').get('INFORMACIONMATERIA')
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError('invalid inputs')
+    
+    def ws_materias_disponibles(self, student_code):
+        '''
+        Consume wsMateriasDisponibles
+        :param student_code: student id 
+        '''
+        if student_code.isdigit():
+            response = self.__service.wsMateriasDisponibles(codigoestudiante=student_code,
+                headers=self.header)
+            json_response = self.__bytes_to_dict(response.as_xml())
+            json_response = json_response.get('Envelope').get('Body').get(
+                'wsMateriasDisponiblesResponse').get('wsMateriasDisponiblesResult').get(
+                    'urn:schemas-microsoft-com:xml-diffgram-v1:diffgram').get(
+                        'NewDataSet').get('MATERIASDISPONIBLES')
+            return self.__remove_unused_items(json_response)
+        else:
+            raise AttributeError('student code must be a string of numbers')

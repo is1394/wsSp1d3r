@@ -30,6 +30,6 @@ export SPIDER_KEY="your key"
 
 &nbsp; **Examples:**
 
-&nbsp; `python3 John Doe 2017 1`
+&nbsp; `python3 wsSpider.py John Doe 2017 1`
 
-&nbsp; `python3 Oscar 'De la Olla' 2014 2`
+&nbsp; `python3 wsSpider.py Oscar 'De la Olla' 2014 2`

@@ -5,10 +5,10 @@ wsSpider get grades from student input
 :argv 3: year
 :argv 4: term
 
-$python3 <name> <lastname> <year> <term>
+$python3 wsSpider <name> <lastname> <year> <term>
 
-Example: $ python3 John Doe 2017 1
-         $ python3 Oscar 'De la Olla' 2014 2
+Example: $ python3 wsSpider.py John Doe 2017 1
+         $ python3 wsSpider.py Oscar 'De la Olla' 2014 2
 '''
 import sys
 from tabulate import tabulate
@@ -56,50 +56,49 @@ def print_info_student(name, lastname, student_code):
     print("CODIGO: {}".format(student_code))
     print(line_break)
 
+if __name__ == '__main__':
+    client = Client()
 
-client = Client()
+    separator = '===' * 50
+    line_break = '\n'
+    table_header = ['MATERIA', 'PARCIAL', 'FINAL',
+                    'MEJORAMIENTO', 'PROMEDIO', 'ESTADO', 'VEZ']
 
-separator = '===' * 50
-line_break = '\n'
-table_header = ['MATERIA', 'PARCIAL', 'FINAL',
-                'MEJORAMIENTO', 'PROMEDIO', 'ESTADO', 'VEZ']
+    name = sys.argv[1]
+    lastname = sys.argv[2]
+    year = sys.argv[3]
+    term = sys.argv[4]
 
-name = sys.argv[1]
-lastname = sys.argv[2]
-year = sys.argv[3]
-term = sys.argv[4]
+    grades_table = []
 
-grades_table = []
-
-try:
-    student = client.ws_consultar_persona_nombres(name, lastname)
-    if isinstance(student, dict):
-        # if ws return 1 person
-        print_info_student(student.get('NOMBRES'), student.get(
-            'APELLIDOS'), student.get('CODESTUDIANTE'))
-        try:
+    try:
+        student = client.ws_consultar_persona_nombres(name, lastname)
+        if isinstance(student, dict):
+            # if ws return 1 person
+            print_info_student(student.get('NOMBRES'), student.get(
+                'APELLIDOS'), student.get('CODESTUDIANTE'))
+            try:
+                grades = client.ws_consulta_calificaciones(
+                    year, term, student.get('CODESTUDIANTE'))
+                processing_grades(grades)
+            except Exception as e:
+                print("Something went wrong looking the grades :(")
+        elif isinstance(student, list):
+            # if ws return some people
+            print(line_break)
+            for index, element in enumerate(student):
+                print("{} - {} {} {}".format(index + 1, element.get('NOMBRES'),
+                                            element.get('APELLIDOS'), element.get('CODESTUDIANTE')))
+            print(line_break)
+            op = input("Ingrese el numero de la persona a consultar: ")
+            print(line_break)
+            tmp_student = student[int(op) - 1]
+            print_info_student(tmp_student.get('NOMBRES'), tmp_student.get(
+                'APELLIDOS'), tmp_student.get('CODESTUDIANTE'))
             grades = client.ws_consulta_calificaciones(
-                year, term, student.get('CODESTUDIANTE'))
+                year, term, tmp_student.get('CODESTUDIANTE'))
             processing_grades(grades)
-        except Exception as e:
-            print(e)
-            print("Something went wrong looking the grades :(")
-    elif isinstance(student, list):
-        # if ws return some people
-        print(line_break)
-        for index, element in enumerate(student):
-            print("{} - {} {} {}".format(index + 1, element.get('NOMBRES'),
-                                         element.get('APELLIDOS'), element.get('CODESTUDIANTE')))
-        print(line_break)
-        op = input("Ingrese el numero de la persona a consultar: ")
-        print(line_break)
-        tmp_student = student[int(op) - 1]
-        print_info_student(tmp_student.get('NOMBRES'), tmp_student.get(
-            'APELLIDOS'), tmp_student.get('CODESTUDIANTE'))
-        grades = client.ws_consulta_calificaciones(
-            year, term, tmp_student.get('CODESTUDIANTE'))
-        processing_grades(grades)
-    else:
-        print('Oops, There are no people with that name')
-except Exception:
-    print("Something went wrong searching this student :(")
+        else:
+            print('Oops, There are no people with that name')
+    except Exception:
+        print("Something went wrong searching this student :(")
